@@ -1,8 +1,9 @@
-from pathlib import Path
 import pickle
 import time
+import re
+import pandas as pd
+from pathlib import Path
 from selenium import webdriver
-
 from selenium.webdriver.common.keys import Keys
 
 def Firstlogin(driver, user, password):
@@ -52,6 +53,44 @@ def collectlinks(web,q,depth):
 
     return links
 
+def collectinfo(web,links):
+    info={
+        'name':[],
+        'pos':[],
+        'adr':[],
+        'links':[],
+        'span':[],
+        'head':[]   
+    }
+
+    for i in links:
+        
+        web.get(i)
+        A = web.find_elements_by_css_selector("li[class = 'inline t-24 t-black t-normal break-words']")
+        B = web.find_elements_by_css_selector("h2[class='mt1 t-18 t-black t-normal break-words']")
+        C = web.find_elements_by_css_selector("li[class='t-16 t-black t-normal inline-block']")
+        web.find_element_by_css_selector("span[class='t-16 t-bold']").click()
+        time.sleep(2)
+        D = [i.get_attribute("href") for i in web.find_elements_by_css_selector("div[class='pv-profile-section__section-info section-info'] a:link")]
+        E = [i.text for i in web.find_elements_by_css_selector("div[class='pv-profile-section__section-info section-info'] span")]
+        F = [i.text for i in web.find_elements_by_css_selector("div[class='pv-profile-section__section-info section-info'] header")]
+
+        def lam(a):
+            if len(a) == 0:
+                return ""
+            else:
+                return a[0].text
+    
+        A, B, C = map(lam,(A,B,C))
+
+        info["name"].append(A)
+        info["pos"].append(B)
+        info["adr"].append(C)
+        info["links"].append(D)
+        info["span"].append(E)
+        info["head"].append(F)
+
+    return info
 
 def main():
     path = "/home/kaafibored/Projects/Linkden_Scraper/"
@@ -61,8 +100,12 @@ def main():
 
     cookieloader(web, path)
 
+    links = collectlinks(web,"Deep Learning",1)
+    final = collectinfo(web,links)
 
-    web.get("https://www.linkedin.com/search/results/companies/?keywords=Google")
+    finaldf = pd.DataFrame(final)
+
+    finaldf.to_csv(path + "data.csv",)
 
     web.close()
 
