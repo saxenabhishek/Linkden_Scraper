@@ -15,7 +15,7 @@ def Firstlogin(driver, user, password):
 
 def cookieloader(web, cookiepath):
     if Path(cookiepath + "cookies.pkl").exists() == False:
-        Firstlogin(web,"as7122000@gmail.com","!Abhi987")
+        Firstlogin(web,"as7122000@gmail.com","XXXXXXX")
         pickle.dump( web.get_cookies() , open(cookiepath + "cookies.pkl","wb")) 
     else:
         web.get("https://www.linkedin.com")
@@ -100,12 +100,17 @@ def main():
 
     cookieloader(web, path)
 
-    links = collectlinks(web,"Deep Learning",1)
-    final = collectinfo(web,links)
-
+    links = collectlinks(web,"CSR",1)
+    
     finaldf = pd.DataFrame(final)
 
-    finaldf.to_csv(path + "data.csv",)
+    finaldf.to_csv(path + "Links.csv",index=False)
+
+    #final = collectinfo(web,links)
+
+    #finaldf = pd.DataFrame(final)
+
+    #finaldf.to_csv(path + "data.csv",)
 
     web.close()
 
