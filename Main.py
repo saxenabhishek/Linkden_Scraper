@@ -6,6 +6,9 @@ from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
+path = "/home/kaafibored/Projects/Linkden_Scraper/"
+
+
 def Firstlogin(driver, user, password):
     driver.get("https://www.linkedin.com/login")
     driver.find_element_by_name("session_key").send_keys(user)
@@ -15,7 +18,7 @@ def Firstlogin(driver, user, password):
 
 def cookieloader(web, cookiepath):
     if Path(cookiepath + "cookies.pkl").exists() == False:
-        Firstlogin(web,"as7122000@gmail.com","XXXXXXX")
+        Firstlogin(web,"as7122000@gmail.com","XXXX")
         pickle.dump( web.get_cookies() , open(cookiepath + "cookies.pkl","wb")) 
     else:
         web.get("https://www.linkedin.com")
@@ -42,7 +45,7 @@ def collectlinks(web,q,depth):
         depth = pageno
 
     for i in range(depth):
-        print(f"{i}-",end = "")
+        print(f"{i}..")
         time.sleep(2)
         html = web.find_element_by_tag_name('html')
         html.send_keys(Keys.END)
@@ -51,7 +54,7 @@ def collectlinks(web,q,depth):
         links += [i.get_attribute("href") for i in li][::2]
         nxt = web.find_elements_by_xpath("//span[@class='artdeco-button__text']")
         nxt[-2].click()
-
+    print("")
     return links
 
 def collectinfo(web,links):
@@ -65,11 +68,12 @@ def collectinfo(web,links):
     }
 
     for i in links:
-        
+        print(i)
         web.get(i)
         A = web.find_elements_by_css_selector("li[class = 'inline t-24 t-black t-normal break-words']")
         B = web.find_elements_by_css_selector("h2[class='mt1 t-18 t-black t-normal break-words']")
         C = web.find_elements_by_css_selector("li[class='t-16 t-black t-normal inline-block']")
+        time.sleep(1)
         web.find_element_by_css_selector("span[class='t-16 t-bold']").click()
         time.sleep(2)
         D = [i.get_attribute("href") for i in web.find_elements_by_css_selector("div[class='pv-profile-section__section-info section-info'] a:link")]
@@ -91,11 +95,15 @@ def collectinfo(web,links):
         info["span"].append(E)
         info["head"].append(F)
 
+        finaldf = pd.DataFrame(info)
+
+        finaldf.to_csv(path + "data.csv",index = False)
+        finaldf.to_pickle(path + "data.pkl")
+
     return info
 
 def main():
-    path = "/home/kaafibored/Projects/Linkden_Scraper/"
-
+    
     print("Starting")
     web = webdriver.Chrome(path+"chromedriver")
     web.maximize_window()
@@ -104,19 +112,24 @@ def main():
     cookieloader(web, path)
 
     print("Started collecting links")
-    links = collectlinks(web,"CSR",1)
+    #links = collectlinks(web,"CSR",80)
     
-    print(f"Found {len(links)} links")
-    finaldf = pd.DataFrame({"Links":links})
+    #print(f"Found {len(links)} links")
+    #finaldf = pd.DataFrame({"Links":links})
 
-    print("Saving to links.csv")
-    finaldf.to_csv(path + "Links.csv",index=False)
+    #print("Saving to links.csv")
+    #finaldf.to_csv(path + "Links.csv",index=False)
 
-    #final = collectinfo(web,links)
+    print("Loading links")
 
-    #finaldf = pd.DataFrame(final)
+    finaldf = pd.read_csv(path + "Links.csv")
+    
+    final = collectinfo(web,finaldf.Links.values)
 
-    #finaldf.to_csv(path + "data.csv",)
+    finaldf = pd.DataFrame(final)
+
+    finaldf.to_csv(path + "data.csv",index = False)
+    finaldf.to_pickle(path + "data.pkl")
 
     web.close()
 
