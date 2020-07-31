@@ -42,6 +42,7 @@ def collectlinks(web,q,depth):
         depth = pageno
 
     for i in range(depth):
+        print(f"{i}-",end = "")
         time.sleep(2)
         html = web.find_element_by_tag_name('html')
         html.send_keys(Keys.END)
@@ -95,15 +96,20 @@ def collectinfo(web,links):
 def main():
     path = "/home/kaafibored/Projects/Linkden_Scraper/"
 
+    print("Starting")
     web = webdriver.Chrome(path+"chromedriver")
     web.maximize_window()
-
+    
+    print("Chrome Loading Cookies...")
     cookieloader(web, path)
 
+    print("Started collecting links")
     links = collectlinks(web,"CSR",1)
     
-    finaldf = pd.DataFrame(final)
+    print(f"Found {len(links)} links")
+    finaldf = pd.DataFrame({"Links":links})
 
+    print("Saving to links.csv")
     finaldf.to_csv(path + "Links.csv",index=False)
 
     #final = collectinfo(web,links)
